@@ -11,9 +11,9 @@ type Position struct {
 	CreateTime      string `json:"createTime"`
 }
 
-type Positions map[string][]Position
+type PositionMap map[string][]Position
 
-func (p Positions) Add(jobs ...Position) {
+func (p PositionMap) Add(jobs ...Position) {
 	for _, job := range jobs {
 		if job.CompanyId != 0 && len(job.CompanyName) != 0 {
 			if _, ok := p[job.CompanyName]; !ok {
@@ -24,6 +24,18 @@ func (p Positions) Add(jobs ...Position) {
 	}
 }
 
-func (p Positions) Map() map[string][]Position {
+func (p PositionMap) Concat(others ...PositionMap) {
+	for _, other := range others {
+		for k, v := range other {
+			if _, ok := p[k]; ok {
+				p[k] = append(p[k], v...)
+			} else {
+				p[k] = v
+			}
+		}
+	}
+}
+
+func (p PositionMap) Map() map[string][]Position {
 	return map[string][]Position(p)
 }

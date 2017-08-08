@@ -10,6 +10,11 @@ import (
 	. "github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
 )
 
+const (
+	pageSize int           = 15
+	timeout  time.Duration = time.Second * 15
+)
+
 type SearchResponse struct {
 	State   int    `json:"state"`
 	Message string `json:"message"`
@@ -38,7 +43,7 @@ func (s Spider) search(city, keyword string, pageNo int) (*SearchResponse, error
 				"city":         city,
 				"positionName": keyword,
 				"pageNo":       strconv.Itoa(pageNo + 1),
-				"pageSize":     "15",
+				"pageSize":     strconv.Itoa(pageSize),
 			},
 			Headers: map[string]string{
 				"Accept":           "application/json",
@@ -49,7 +54,7 @@ func (s Spider) search(city, keyword string, pageNo int) (*SearchResponse, error
 				"X-Requested-With": "XMLHttpRequest",
 				"Connection":       "keep-alive",
 			},
-			RequestTimeout: time.Second * 15,
+			RequestTimeout: timeout,
 		})
 	if err != nil {
 		return nil, err
@@ -66,38 +71,104 @@ func (s Spider) search(city, keyword string, pageNo int) (*SearchResponse, error
 	return response, nil
 }
 
-func (s Spider) Search(city, keyword string) (*SearchResponse, error) {
-	response, err := s.search(city, keyword, 0)
+func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
+	r, err := s.search(city, keyword, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	totalCount, err := strconv.Atoi(response.Content.Data.Page.TotalCount)
+	totalCount, err := strconv.Atoi(r.Content.Data.Page.TotalCount)
 	if err != nil {
 		return nil, err
 	}
-	totalCount /= 15
+	totalCount /= pageSize
 
-	for i := 1; i < totalCount; i++ {
-		r, err := s.search(city, keyword, i)
+	msg := make(chan *Msg, totalCount+1)
+	msg <- MsgData(r)
+
+	go func() {
+		for i := 1; i < totalCount; i++ {
+			if s.RequestInterval > 0 {
+				time.Sleep(time.Millisecond * time.Duration(s.RequestInterval))
+			}
+			r, err := s.search(city, keyword, i)
+			if err != nil {
+				msg <- MsgError(err)
+				break
+			}
+			msg <- MsgData(r)
+		}
+		close(msg)
+	}()
+
+	return msg, nil
+}
+
+func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
+	msg_sr, err := s.Search(city, keyword)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := make(chan *Msg, cap(msg_sr)*pageSize)
+
+	go func() {
+		for keep := true; keep; {
+			select {
+			case m := <-msg_sr:
+				if m == nil {
+					keep = false
+					break
+				} else if m.HasData() {
+					msg <- MsgData(m.data.(*SearchResponse).Content.Data.Page.Result)
+				} else {
+					msg <- m
+				}
+			case <-time.After(timeout):
+				msg <- MsgInterrupt()
+				keep = false
+				break
+			}
+		}
+		close(msg)
+	}()
+
+	return msg, nil
+}
+
+func (s Spider) SearchPositionMap(city, keyword string) (PositionMap, error) {
+	msg, err := s.searchPositions(city, keyword)
+	if err != nil {
+		return nil, err
+	}
+
+	positions := PositionMap{}
+
+	for keep := true; keep; {
+		select {
+		case m := <-msg:
+			if m != nil && m.HasData() {
+				positions.Add((m.data).([]Position)...)
+			} else {
+				keep = false
+				break
+			}
+		}
+	}
+
+	return positions, nil
+}
+
+func (s Spider) SearchPositionMaps(city string, keywords ...string) (PositionMap, error) {
+	positions := PositionMap{}
+
+	for _, keyword := range keywords {
+		pm, err := s.SearchPositionMap(city, keyword)
 		if err != nil {
 			return nil, err
 		}
-		response.Content.Data.Page.Result = append(response.Content.Data.Page.Result,
-			r.Content.Data.Page.Result...)
+		positions.Concat(pm)
 	}
 
-	return response, nil
-}
-
-func (s Spider) SearchPositions(city, keyword string) (*Positions, error) {
-	resp, err := s.Search(city, keyword)
-	if err != nil {
-		return nil, err
-	}
-
-	positions := Positions{}
-	positions.Add(resp.Content.Data.Page.Result...)
-
-	return &positions, nil
+	return positions, nil
 }

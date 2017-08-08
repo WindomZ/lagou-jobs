@@ -8,18 +8,17 @@ import (
 
 func main() {
 	spider := lagou.New()
+
 	err := spider.ReadConfig("./asset/config.json")
 	if err != nil {
 		panic(err)
 	}
 
-	println(spider.UserAgent)
-
-	ps, err := spider.SearchPositions("深圳", "go")
+	m, err := spider.SearchPositionMaps("深圳", "go")
 	if err != nil {
 		panic(err)
 	}
-	for k, v := range ps.Map() {
+	for k, v := range m.Map() {
 		println("-------------------------------------")
 		println(fmt.Sprintf("公司：%v", k))
 		for _, p := range v {
