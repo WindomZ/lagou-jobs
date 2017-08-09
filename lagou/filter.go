@@ -1,11 +1,6 @@
 package lagou
 
-import (
-	"strings"
-	"sync"
-
-	. "github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
-)
+import "strings"
 
 type Filter struct {
 	Company struct {
@@ -63,7 +58,7 @@ func (s Spider) filterPositionId(id int) bool {
 	return true
 }
 
-func (s Spider) filterPosition(str string) bool {
+func (s Spider) filterString(str string) bool {
 	if len(str) == 0 {
 		return false
 	}
@@ -79,15 +74,4 @@ func (s Spider) filterPosition(str string) bool {
 		}
 	}
 	return false
-}
-
-func (s Spider) filterPositions(msg chan *Msg, wait *sync.WaitGroup, ps []Position) {
-	for _, p := range ps {
-		if s.filterCompanyId(p.CompanyId) && s.filterPositionId(p.PositionId) {
-			if s.filterPosition(p.PositionName) {
-				msg <- MsgData(p)
-			}
-		}
-	}
-	wait.Done()
 }

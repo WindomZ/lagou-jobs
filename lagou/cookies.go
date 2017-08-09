@@ -1,10 +1,6 @@
 package lagou
 
-import (
-	"time"
-
-	"github.com/WindomZ/grequests"
-)
+import "github.com/WindomZ/grequests"
 
 func (s *Spider) GetCookies() error {
 	resp, err := grequests.Get(
@@ -15,7 +11,7 @@ func (s *Spider) GetCookies() error {
 				"Upgrade-Insecure-Requests": "1",
 				"User-Agent":                s.UserAgent,
 			},
-			RequestTimeout: time.Second * 10,
+			RequestTimeout: s.Request.RequestTimeout,
 		})
 	if err != nil {
 		return err

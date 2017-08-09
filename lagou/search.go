@@ -12,10 +12,7 @@ import (
 	. "github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
 )
 
-const (
-	pageSize int           = 15
-	timeout  time.Duration = time.Second * 15
-)
+const pageSize int = 15
 
 func (s Spider) searchWithPage(city, keyword string, pageNo int) (*SearchResponse, error) {
 	if !s.running {
@@ -39,7 +36,7 @@ func (s Spider) searchWithPage(city, keyword string, pageNo int) (*SearchRespons
 				"X-Requested-With": "XMLHttpRequest",
 				"Connection":       "keep-alive",
 			},
-			RequestTimeout: timeout,
+			RequestTimeout: s.Request.RequestTimeout,
 		})
 	if err != nil {
 		return nil, err
@@ -75,19 +72,20 @@ func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
 	msg <- MsgData(r)
 
 	go func() {
+		wait := sync.WaitGroup{}
 		for i := 1; s.running && i < pages; i++ {
-			if s.RequestInterval > 0 {
-				time.Sleep(time.Millisecond * time.Duration(s.RequestInterval))
-			}
-			r, err := s.searchWithPage(city, keyword, i)
-			if err != nil {
-				msg <- MsgError(err)
-				break
-			}
-			msg <- MsgData(r)
+			time.Sleep(s.Request.RequestInterval)
+			wait.Add(1)
+			go func(i int) {
+				if r, err := s.searchWithPage(city, keyword, i); err != nil {
+					msg <- MsgError(err)
+				} else {
+					msg <- MsgData(r)
+				}
+				wait.Done()
+			}(i)
 		}
-		msg <- nil
-		time.Sleep(time.Second)
+		wait.Wait()
 		close(msg)
 	}()
 
@@ -102,7 +100,7 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 
 	msg := make(chan *Msg, cap(msgSR)*pageSize)
 	go func() {
-		wait := &sync.WaitGroup{}
+		wait := sync.WaitGroup{}
 		for keep := s.running; keep; {
 			select {
 			case m := <-msgSR:
@@ -110,8 +108,18 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 					keep = false
 				} else if m.HasData() {
 					wait.Add(1)
-					go s.filterPositions(msg, wait,
-						m.data.(*SearchResponse).Content.Data.Page.Result)
+					go func(ps []Position) {
+						for _, p := range ps {
+							if s.filterCompanyId(p.CompanyId) && s.filterPositionId(p.PositionId) {
+								if s.filterString(p.PositionName) {
+									msg <- MsgData(p)
+								} else {
+									// TODO: filter job details
+								}
+							}
+						}
+						wait.Done()
+					}(m.data.(*SearchResponse).Content.Data.Page.Result)
 				} else {
 					keep = false
 					msg <- m
