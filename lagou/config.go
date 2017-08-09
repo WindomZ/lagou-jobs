@@ -12,15 +12,15 @@ type Config struct {
 	Search          struct {
 		City     string   `json:"city"`     // the city
 		Keywords []string `json:"keywords"` // how to search from lagou
-		Filter   struct {
-			Include []string `json:"include"` // must include words
-			Exclude []string `json:"exclude"` // must exclude words
-		} `json:"filter"`
-		Company struct {
-			ExcludeId []string `json:"excludeId"` // must exclude CompanyId
+		Company  struct {
+			ExcludeId []int `json:"excludeId"` // must exclude CompanyId
 		} `json:"company"`
 		Position struct {
-			ExcludeId []string `json:"excludeId"` // must exclude PositionId
+			ExcludeId []int `json:"excludeId"` // must exclude PositionId
+			Filter    struct {
+				Include []string `json:"include"` // must include words
+				Exclude []string `json:"exclude"` // must exclude words
+			} `json:"filter"`
 		} `json:"position"`
 	} `json:"search"`
 }
