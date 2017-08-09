@@ -8,7 +8,7 @@ import (
 )
 
 func TestPositions_Add_Map(t *testing.T) {
-	p := Positions{}
+	p := PositionMap{}
 
 	for i := 1; i <= 10; i++ {
 		p.Add(Position{

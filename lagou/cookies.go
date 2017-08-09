@@ -8,7 +8,7 @@ import (
 
 func (s *Spider) GetCookies() error {
 	resp, err := grequests.Get(
-		"https://m.lagou.com/",
+		"https://m.lagou.com",
 		&grequests.RequestOptions{
 			Headers: map[string]string{
 				"Host": "m.lagou.com",

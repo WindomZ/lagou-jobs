@@ -2,6 +2,7 @@ package lagou
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -15,27 +16,10 @@ const (
 	timeout  time.Duration = time.Second * 15
 )
 
-type SearchResponse struct {
-	State   int    `json:"state"`
-	Message string `json:"message"`
-	Content struct {
-		Data struct {
-			Custom struct {
-				City         string `json:"city"`
-				PositionName string `json:"positionName"`
-			} `json:"custom"`
-			Page struct {
-				PageNo     int        `json:"pageNo"`
-				PageSize   int        `json:"pageSize"`
-				Start      string     `json:"start"`
-				TotalCount string     `json:"totalCount"`
-				Result     []Position `json:"result"`
-			} `json:"page"`
-		} `json:"data"`
-	} `json:"content"`
-}
-
-func (s Spider) search(city, keyword string, pageNo int) (*SearchResponse, error) {
+func (s Spider) searchWithPage(city, keyword string, pageNo int) (*SearchResponse, error) {
+	if !s.running {
+		return nil, errors.New("spider stopped!")
+	}
 	resp, err := grequests.Get(
 		"https://m.lagou.com/search.json",
 		&grequests.RequestOptions{
@@ -72,7 +56,7 @@ func (s Spider) search(city, keyword string, pageNo int) (*SearchResponse, error
 }
 
 func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
-	r, err := s.search(city, keyword, 0)
+	r, err := s.searchWithPage(city, keyword, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +71,11 @@ func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
 	msg <- MsgData(r)
 
 	go func() {
-		for i := 1; i < totalCount; i++ {
+		for i := 1; s.running && i < totalCount; i++ {
 			if s.RequestInterval > 0 {
 				time.Sleep(time.Millisecond * time.Duration(s.RequestInterval))
 			}
-			r, err := s.search(city, keyword, i)
+			r, err := s.searchWithPage(city, keyword, i)
 			if err != nil {
 				msg <- MsgError(err)
 				break
@@ -113,7 +97,7 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 	msg := make(chan *Msg, cap(msg_sr)*pageSize)
 
 	go func() {
-		for keep := true; keep; {
+		for keep := s.running; keep; {
 			select {
 			case m := <-msg_sr:
 				if m == nil {
@@ -124,6 +108,9 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 				} else {
 					msg <- m
 				}
+			case <-s.interrupt:
+				keep = false
+				break
 			case <-time.After(timeout):
 				msg <- MsgInterrupt()
 				keep = false
@@ -144,7 +131,7 @@ func (s Spider) SearchPositionMap(city, keyword string) (PositionMap, error) {
 
 	positions := PositionMap{}
 
-	for keep := true; keep; {
+	for keep := s.running; keep; {
 		select {
 		case m := <-msg:
 			if m != nil && m.HasData() {
@@ -153,6 +140,9 @@ func (s Spider) SearchPositionMap(city, keyword string) (PositionMap, error) {
 				keep = false
 				break
 			}
+		case <-s.interrupt:
+			keep = false
+			break
 		}
 	}
 

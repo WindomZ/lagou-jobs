@@ -9,8 +9,11 @@ import (
 func main() {
 	spider := lagou.New()
 
-	err := spider.ReadConfig("./asset/config.json")
-	if err != nil {
+	if err := spider.ReadConfig("./asset/config.json"); err != nil {
+		panic(err)
+	}
+
+	if err := spider.Start(); err != nil {
 		panic(err)
 	}
 
