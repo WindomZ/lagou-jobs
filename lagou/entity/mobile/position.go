@@ -19,6 +19,11 @@ func (p PositionMap) Add(jobs ...Position) {
 			if _, ok := p[job.CompanyName]; !ok {
 				p[job.CompanyName] = make([]Position, 0, 3)
 			}
+			for _, j := range p[job.CompanyName] {
+				if j.PositionId == job.PositionId {
+					return
+				}
+			}
 			p[job.CompanyName] = append(p[job.CompanyName], job)
 		}
 	}

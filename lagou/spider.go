@@ -7,6 +7,7 @@ import (
 
 type Spider struct {
 	Config
+	Filter
 	Cookies string
 
 	lock      sync.Mutex
@@ -21,6 +22,7 @@ func New() *Spider {
 }
 
 func (s *Spider) Start() error {
+	s.initFilter()
 	if len(s.Cookies) == 0 {
 		if err := s.GetCookies(); err != nil {
 			return err
