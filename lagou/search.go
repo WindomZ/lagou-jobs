@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/WindomZ/grequests"
@@ -65,13 +66,16 @@ func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
 	if err != nil {
 		return nil, err
 	}
-	totalCount /= pageSize
+	pages := totalCount / pageSize
+	if totalCount%pageSize != 0 {
+		pages++
+	}
 
-	msg := make(chan *Msg, totalCount+1)
+	msg := make(chan *Msg, pages)
 	msg <- MsgData(r)
 
 	go func() {
-		for i := 1; s.running && i < totalCount; i++ {
+		for i := 1; s.running && i < pages; i++ {
 			if s.RequestInterval > 0 {
 				time.Sleep(time.Millisecond * time.Duration(s.RequestInterval))
 			}
@@ -82,6 +86,8 @@ func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
 			}
 			msg <- MsgData(r)
 		}
+		msg <- nil
+		time.Sleep(time.Second)
 		close(msg)
 	}()
 
@@ -89,34 +95,35 @@ func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
 }
 
 func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
-	msg_sr, err := s.Search(city, keyword)
+	msgSR, err := s.Search(city, keyword)
 	if err != nil {
 		return nil, err
 	}
 
-	msg := make(chan *Msg, cap(msg_sr)*pageSize)
-
+	msg := make(chan *Msg, cap(msgSR)*pageSize)
 	go func() {
+		wait := &sync.WaitGroup{}
 		for keep := s.running; keep; {
 			select {
-			case m := <-msg_sr:
+			case m := <-msgSR:
 				if m == nil {
 					keep = false
-					break
 				} else if m.HasData() {
-					msg <- MsgData(m.data.(*SearchResponse).Content.Data.Page.Result)
+					wait.Add(1)
+					go s.filterPositions(msg, wait,
+						m.data.(*SearchResponse).Content.Data.Page.Result)
 				} else {
+					keep = false
 					msg <- m
 				}
 			case <-s.interrupt:
 				keep = false
-				break
-			case <-time.After(timeout):
-				msg <- MsgInterrupt()
-				keep = false
-				break
+				//case <-time.After(timeout):
+				//	msg <- MsgInterrupt()
+				//	keep = false
 			}
 		}
+		wait.Wait()
 		close(msg)
 	}()
 
@@ -129,23 +136,23 @@ func (s Spider) SearchPositionMap(city, keyword string) (PositionMap, error) {
 		return nil, err
 	}
 
-	positions := PositionMap{}
+	ps := make([]Position, 0, cap(msg))
 
 	for keep := s.running; keep; {
 		select {
 		case m := <-msg:
 			if m != nil && m.HasData() {
-				positions.Add((m.data).([]Position)...)
+				ps = append(ps, m.data.(Position))
 			} else {
 				keep = false
-				break
 			}
 		case <-s.interrupt:
 			keep = false
-			break
 		}
 	}
 
+	positions := PositionMap{}
+	positions.Add(ps...)
 	return positions, nil
 }
 
