@@ -8,7 +8,8 @@ import (
 type Config struct {
 	OutputJsonFile  string `json:"outputJsonFile"`
 	UserAgent       string `json:"userAgent"`       // recommend UA from Chrome
-	RequestInterval int    `json:"requestInterval"` // millisecond
+	RequestTimeout  int    `json:"requestTimeout"`  // seconds
+	RequestInterval int    `json:"requestInterval"` // milliseconds
 	Search          struct {
 		City     string   `json:"city"`     // the city
 		Keywords []string `json:"keywords"` // how to search from lagou

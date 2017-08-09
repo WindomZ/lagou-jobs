@@ -12,6 +12,9 @@ func TestConfig_ReadConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	assert.Equal(t, 15, c.RequestTimeout)
+	assert.Equal(t, 0, c.RequestInterval)
+
 	assert.Equal(t, "深圳", c.Search.City)
 	assert.Equal(t, []string{"go"}, c.Search.Keywords)
 	assert.Equal(t, []string{"go"}, c.Search.Position.Filter.Include)
