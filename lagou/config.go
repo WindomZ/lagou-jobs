@@ -6,7 +6,6 @@ import (
 )
 
 type Config struct {
-	OutputJsonFile  string `json:"outputJsonFile"`
 	UserAgent       string `json:"userAgent"`       // recommend UA from Chrome
 	RequestTimeout  int    `json:"requestTimeout"`  // seconds
 	RequestInterval int    `json:"requestInterval"` // milliseconds
@@ -28,6 +27,14 @@ type Config struct {
 			} `json:"salary"`
 		} `json:"position"`
 	} `json:"search"`
+	Output struct {
+		Files struct {
+			JSON string `json:"json"`
+		} `json:"files"`
+		Http struct {
+			Port int `json:"port"`
+		} `json:"http"`
+	} `json:"output"`
 }
 
 func (c *Config) ReadConfig(filename string) error {

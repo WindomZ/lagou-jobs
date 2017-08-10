@@ -8,7 +8,7 @@ import (
 
 func TestConfig_ReadConfig(t *testing.T) {
 	c := new(Config)
-	if err := c.ReadConfig("../asset/config.json"); err != nil {
+	if err := c.ReadConfig("../tests/asset/config.json"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -18,4 +18,6 @@ func TestConfig_ReadConfig(t *testing.T) {
 	assert.Equal(t, "深圳", c.Search.City)
 	assert.Equal(t, []string{"go"}, c.Search.Keywords)
 	assert.Equal(t, []string{"go"}, c.Search.Position.Filter.Include)
+
+	assert.Equal(t, "./tests/output/result.json", c.Output.Files.JSON)
 }
