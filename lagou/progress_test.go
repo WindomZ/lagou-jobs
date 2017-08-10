@@ -7,8 +7,8 @@ import (
 
 func TestProgress_1(t *testing.T) {
 	p := Progress{}
-	p.Start(200)
-	for i := 0; i < 200; i++ {
+	p.Start(100)
+	for i := 0; i < 100; i++ {
 		p.Increment()
 		time.Sleep(time.Millisecond * 25)
 	}
@@ -17,8 +17,8 @@ func TestProgress_1(t *testing.T) {
 
 func TestProgress_2(t *testing.T) {
 	p := Progress{}
-	p.Start(200)
-	for i := 0; i < 20; i++ {
+	p.Start(100)
+	for i := 0; i < 10; i++ {
 		p.Add(10)
 		time.Sleep(time.Millisecond * 250)
 	}

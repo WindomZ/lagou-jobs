@@ -14,12 +14,11 @@ func parseSalary(salary string) (min, max int) {
 		min *= 1000
 		if len(s) >= 2 {
 			max, _ = strconv.Atoi(s[1])
-			if max > 0 {
-				max *= 1000
-			} else {
-				max = math.MaxInt32
-			}
+			max *= 1000
 		}
+	}
+	if max <= 0 {
+		max = math.MaxInt32
 	}
 	return
 }
