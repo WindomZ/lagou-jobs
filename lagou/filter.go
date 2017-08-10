@@ -19,7 +19,7 @@ type Filter struct {
 	}
 }
 
-func (s *Spider) initFilter() {
+func (s *Spider) initFilter() error {
 	s.Filter.Company.ExcludeId = make(map[int]bool, len(s.Config.Search.Company.ExcludeId))
 	for _, id := range s.Config.Search.Company.ExcludeId {
 		s.Filter.Company.ExcludeId[id] = true
@@ -46,6 +46,8 @@ func (s *Spider) initFilter() {
 
 	s.Filter.Position.Salary.Min = s.Config.Search.Position.Salary.Min
 	s.Filter.Position.Salary.Max = s.Config.Search.Position.Salary.Max
+
+	return nil
 }
 
 func (s Spider) filterCompanyId(id int) bool {

@@ -9,7 +9,7 @@ import (
 func TestJobs_crawlJobDetail(t *testing.T) {
 	spider := New()
 
-	if err := spider.ReadConfig("../tests/config.json"); err != nil {
+	if err := spider.ReadConfig("../tests/asset/config.json"); err != nil {
 		t.Fatal(err)
 	}
 	if err := spider.Start(); err != nil {
@@ -39,7 +39,7 @@ func TestJobs_crawlJobDetail(t *testing.T) {
 func TestJobs_filterJobDetail(t *testing.T) {
 	spider := New()
 
-	if err := spider.ReadConfig("../tests/config.json"); err != nil {
+	if err := spider.ReadConfig("../tests/asset/config.json"); err != nil {
 		t.Fatal(err)
 	}
 	if err := spider.Start(); err != nil {

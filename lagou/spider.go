@@ -24,8 +24,15 @@ func New() *Spider {
 }
 
 func (s *Spider) Start() error {
-	s.initFilter()
-	s.initRequestOption()
+	if err := s.initFilter(); err != nil {
+		return err
+	}
+	if err := s.initRequestOption(); err != nil {
+		return err
+	}
+	if err := s.initFiles(); err != nil {
+		return err
+	}
 	if len(s.Cookies) == 0 {
 		if err := s.GetCookies(); err != nil {
 			return err
@@ -42,7 +49,17 @@ func (s *Spider) Run() error {
 	}
 	s.running = true
 	s.lock.Unlock()
-	// TODO: ...
+
+	pm, err := s.SearchPositionMaps(s.Config.Search.City,
+		s.Config.Search.Keywords...)
+	if err != nil {
+		return err
+	}
+
+	if err := s.writeToFiles(pm); err != nil {
+		return err
+	}
+
 	return nil
 }
 
