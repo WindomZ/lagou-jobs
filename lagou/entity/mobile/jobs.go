@@ -1,11 +1,5 @@
 package mobile
 
-import (
-	"math"
-	"regexp"
-	"strconv"
-)
-
 type JobDetail struct {
 	Meta struct {
 		Keywords    string // 关键字
@@ -23,22 +17,4 @@ type JobDetail struct {
 		Info  string // 公司信息
 	}
 	PositionDesc string // 职位描述
-}
-
-var regSalary = regexp.MustCompile(`\d+`)
-
-func (j JobDetail) MinSalary() int {
-	if s := regSalary.FindAllString(j.Salary, -1); len(s) >= 1 {
-		salary, _ := strconv.Atoi(s[0])
-		return salary * 1000
-	}
-	return 0
-}
-
-func (j JobDetail) MaxSalary() int {
-	if s := regSalary.FindAllString(j.Salary, -1); len(s) >= 2 {
-		salary, _ := strconv.Atoi(s[1])
-		return salary * 1000
-	}
-	return math.MaxInt32
 }

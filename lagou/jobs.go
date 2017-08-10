@@ -74,15 +74,8 @@ func (s Spider) filterJobDetail(positionId int) bool {
 		return false
 	}
 
-	if s.Filter.Position.Salary.Min > 0 {
-		if s.Filter.Position.Salary.Max > 0 {
-			if j.MaxSalary() < s.Filter.Position.Salary.Max ||
-				j.MinSalary() < s.Filter.Position.Salary.Min {
-				return false
-			}
-		} else if j.MaxSalary() < s.Filter.Position.Salary.Min {
-			return false
-		}
+	if !s.filterSalary(j.Salary) {
+		return false
 	}
 
 	switch {

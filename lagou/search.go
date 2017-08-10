@@ -110,7 +110,9 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 					wait.Add(1)
 					go func(ps []Position) {
 						for _, p := range ps {
-							if s.filterCompanyId(p.CompanyId) && s.filterPositionId(p.PositionId) {
+							if s.filterCompanyId(p.CompanyId) &&
+								s.filterPositionId(p.PositionId) &&
+								s.filterSalary(p.Salary) {
 								if s.filterString(p.PositionName) {
 									msg <- MsgData(p)
 								} else {
