@@ -114,7 +114,14 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 								if s.filterString(p.PositionName) {
 									msg <- MsgData(p)
 								} else {
-									// TODO: filter job details
+									wait.Add(1)
+									time.Sleep(s.Request.RequestInterval)
+									go func() {
+										if s.filterJobDetail(p.PositionId) {
+											msg <- MsgData(p)
+										}
+										wait.Done()
+									}()
 								}
 							}
 						}
