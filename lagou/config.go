@@ -22,6 +22,10 @@ type Config struct {
 				Include []string `json:"include"` // must include words
 				Exclude []string `json:"exclude"` // must exclude words
 			} `json:"filter"`
+			Salary struct {
+				Min int `json:"min"` // min salary
+				Max int `json:"max"` // max salary
+			} `json:"salary"`
 		} `json:"position"`
 	} `json:"search"`
 }
