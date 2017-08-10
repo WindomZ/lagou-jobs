@@ -3,9 +3,8 @@ package main
 import "github.com/WindomZ/lagou-jobs/lagou"
 
 func main() {
-	spider := lagou.New()
-
-	if err := spider.ReadConfig("./tests/asset/config.json"); err != nil {
+	spider, err := lagou.New("./tests/asset/config.json")
+	if err != nil {
 		panic(err)
 	}
 

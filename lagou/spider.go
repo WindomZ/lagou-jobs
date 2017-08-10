@@ -17,13 +17,14 @@ type Spider struct {
 	interrupt chan bool
 }
 
-func New() *Spider {
-	return &Spider{
+func New(configPath string) (*Spider, error) {
+	s := &Spider{
 		interrupt: make(chan bool),
 	}
+	return s, s.Config.ReadConfig(configPath)
 }
 
-func (s *Spider) Start() error {
+func (s *Spider) ready() error {
 	if err := s.initFilter(); err != nil {
 		return err
 	}
@@ -38,10 +39,7 @@ func (s *Spider) Start() error {
 			return err
 		}
 	}
-	return s.Run()
-}
 
-func (s *Spider) Run() error {
 	s.lock.Lock()
 	if s.running {
 		s.lock.Unlock()
@@ -50,6 +48,10 @@ func (s *Spider) Run() error {
 	s.running = true
 	s.lock.Unlock()
 
+	return nil
+}
+
+func (s *Spider) run() error {
 	pm, err := s.SearchPositionMaps(s.Config.Search.City,
 		s.Config.Search.Keywords...)
 	if err != nil {
@@ -61,6 +63,13 @@ func (s *Spider) Run() error {
 	}
 
 	return nil
+}
+
+func (s *Spider) Start() error {
+	if err := s.ready(); err != nil {
+		return nil
+	}
+	return s.run()
 }
 
 func (s *Spider) Stop() {
