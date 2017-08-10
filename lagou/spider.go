@@ -15,6 +15,8 @@ type Spider struct {
 	lock      sync.Mutex
 	running   bool
 	interrupt chan bool
+
+	Progress Progress
 }
 
 func New(configPath string) (*Spider, error) {

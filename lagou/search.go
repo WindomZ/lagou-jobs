@@ -53,7 +53,7 @@ func (s Spider) searchWithPage(city, keyword string, pageNo int) (*SearchRespons
 	return response, nil
 }
 
-func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
+func (s *Spider) search(city, keyword string) (<-chan *Msg, error) {
 	r, err := s.searchWithPage(city, keyword, 0)
 	if err != nil {
 		return nil, err
@@ -67,6 +67,8 @@ func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
 	if totalCount%pageSize != 0 {
 		pages++
 	}
+
+	s.Progress.Start(totalCount)
 
 	msg := make(chan *Msg, pages)
 	msg <- MsgData(r)
@@ -92,8 +94,8 @@ func (s Spider) Search(city, keyword string) (<-chan *Msg, error) {
 	return msg, nil
 }
 
-func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
-	msgSR, err := s.Search(city, keyword)
+func (s *Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
+	msgSR, err := s.search(city, keyword)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +117,7 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 								s.filterSalary(p.Salary) {
 								if s.filterString(p.PositionName) {
 									msg <- MsgData(p)
+									s.Progress.Increment()
 								} else {
 									wait.Add(1)
 									time.Sleep(s.Request.RequestInterval)
@@ -122,6 +125,7 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 										if s.filterJobDetail(p.PositionId) {
 											msg <- MsgData(p)
 										}
+										s.Progress.Increment()
 										wait.Done()
 									}()
 								}
@@ -141,6 +145,7 @@ func (s Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 			}
 		}
 		wait.Wait()
+		s.Progress.Finish()
 		close(msg)
 	}()
 
