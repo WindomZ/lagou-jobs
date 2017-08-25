@@ -13,7 +13,7 @@ type Spider struct {
 
 	Cookies string
 
-	lock      sync.Mutex
+	lock      *sync.Mutex
 	running   bool
 	interrupt chan bool
 
@@ -23,6 +23,7 @@ type Spider struct {
 // New returns a Spider instance
 func New(configPath string) (*Spider, error) {
 	s := &Spider{
+		lock:      new(sync.Mutex),
 		interrupt: make(chan bool),
 	}
 	return s, s.Config.ReadConfig(configPath)
