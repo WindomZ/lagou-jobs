@@ -3,47 +3,50 @@ package lagou
 import (
 	"fmt"
 
-	. "github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
+	"github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
 )
 
+// ResultPosition defines structure of lagou position result
 type ResultPosition struct {
-	PositionId   int    `json:"positionId"`
+	PositionID   int    `json:"positionID"`
 	PositionName string `json:"positionName"`
 	PositionURL  string `json:"positionURL"`
 	Salary       string `json:"salary"`
 	CreateTime   string `json:"createTime"`
 }
 
+// ResultCompany defines structure of lagou company result
 type ResultCompany struct {
-	CompanyId       int              `json:"companyId"`
+	CompanyID       int              `json:"companyID"`
 	CompanyName     string           `json:"companyName"`
 	CompanyFullName string           `json:"companyFullName"`
 	CompanyURL      string           `json:"companyURL"`
 	Positions       []ResultPosition `json:"positions"`
 }
 
+// Results defines all lagou results
 type Results struct {
 	Companies []ResultCompany `json:"companies"`
 }
 
-func (r *Results) fromPositionMap(p PositionMap) error {
+func (r *Results) fromPositionMap(p mobile.PositionMap) error {
 	r.Companies = make([]ResultCompany, 0, len(p))
 	for _, v := range p.Map() {
 		if len(v) == 0 {
 			continue
 		}
 		c := ResultCompany{
-			CompanyId:       v[0].CompanyId,
+			CompanyID:       v[0].CompanyID,
 			CompanyName:     v[0].CompanyName,
 			CompanyFullName: v[0].CompanyFullName,
-			CompanyURL:      fmt.Sprintf("https://www.lagou.com/gongsi/%v.html", v[0].CompanyId),
+			CompanyURL:      fmt.Sprintf("https://www.lagou.com/gongsi/%v.html", v[0].CompanyID),
 			Positions:       make([]ResultPosition, len(v)),
 		}
 		for i, p := range v {
 			c.Positions[i] = ResultPosition{
-				PositionId:   p.PositionId,
+				PositionID:   p.PositionID,
 				PositionName: p.PositionName,
-				PositionURL:  fmt.Sprintf("https://www.lagou.com/jobs/%v.html", p.PositionId),
+				PositionURL:  fmt.Sprintf("https://www.lagou.com/jobs/%v.html", p.PositionID),
 				Salary:       p.Salary,
 				CreateTime:   p.CreateTime,
 			}

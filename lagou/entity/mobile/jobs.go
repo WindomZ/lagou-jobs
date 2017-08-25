@@ -1,5 +1,6 @@
 package mobile
 
+// JobDetail defines lagou job detail info
 type JobDetail struct {
 	Meta struct {
 		Keywords    string // 关键字

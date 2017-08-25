@@ -2,12 +2,13 @@ package lagou
 
 import "strings"
 
+// Filter lagou jobs filter
 type Filter struct {
 	Company struct {
-		ExcludeId map[int]bool // must exclude CompanyId
+		ExcludeID map[int]bool // must exclude CompanyID
 	}
 	Position struct {
-		ExcludeId map[int]bool // must exclude PositionId
+		ExcludeID map[int]bool // must exclude PositionID
 		Filter    struct {
 			Include []string // must include words
 			Exclude []string // must exclude words
@@ -20,14 +21,14 @@ type Filter struct {
 }
 
 func (s *Spider) initFilter() error {
-	s.Filter.Company.ExcludeId = make(map[int]bool, len(s.Config.Search.Company.ExcludeId))
-	for _, id := range s.Config.Search.Company.ExcludeId {
-		s.Filter.Company.ExcludeId[id] = true
+	s.Filter.Company.ExcludeID = make(map[int]bool, len(s.Config.Search.Company.ExcludeID))
+	for _, id := range s.Config.Search.Company.ExcludeID {
+		s.Filter.Company.ExcludeID[id] = true
 	}
 
-	s.Filter.Position.ExcludeId = make(map[int]bool, len(s.Config.Search.Position.ExcludeId))
-	for _, id := range s.Config.Search.Position.ExcludeId {
-		s.Filter.Position.ExcludeId[id] = true
+	s.Filter.Position.ExcludeID = make(map[int]bool, len(s.Config.Search.Position.ExcludeID))
+	for _, id := range s.Config.Search.Position.ExcludeID {
+		s.Filter.Position.ExcludeID[id] = true
 	}
 
 	s.Filter.Position.Filter.Include = make([]string, 0, len(s.Config.Search.Position.Filter.Include))
@@ -50,21 +51,21 @@ func (s *Spider) initFilter() error {
 	return nil
 }
 
-func (s Spider) filterCompanyId(id int) bool {
+func (s Spider) filterCompanyID(id int) bool {
 	if id <= 0 {
 		return false
 	}
-	if _, ok := s.Filter.Company.ExcludeId[id]; ok {
+	if _, ok := s.Filter.Company.ExcludeID[id]; ok {
 		return false
 	}
 	return true
 }
 
-func (s Spider) filterPositionId(id int) bool {
+func (s Spider) filterPositionID(id int) bool {
 	if id <= 0 {
 		return false
 	}
-	if _, ok := s.Filter.Position.ExcludeId[id]; ok {
+	if _, ok := s.Filter.Position.ExcludeID[id]; ok {
 		return false
 	}
 	return true

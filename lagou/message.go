@@ -1,37 +1,38 @@
 package lagou
 
-type Msg struct {
+// message defines the multi-channel communication message
+type message struct {
 	data      interface{}
 	error     error
 	interrupt bool
 }
 
-func MsgData(data interface{}) *Msg {
-	return &Msg{
+func newMsgData(data interface{}) *message {
+	return &message{
 		data: data,
 	}
 }
 
-func MsgError(err error) *Msg {
-	return &Msg{
+func newMsgError(err error) *message {
+	return &message{
 		error: err,
 	}
 }
 
-func MsgInterrupt() *Msg {
-	return &Msg{
-		interrupt: true,
-	}
-}
+//func newMsgInterrupt() *message {
+//	return &message{
+//		interrupt: true,
+//	}
+//}
 
-func (m Msg) HasData() bool {
+func (m message) hasData() bool {
 	return m.data != nil
 }
 
-func (m Msg) HasError() bool {
+func (m message) hasError() bool {
 	return m.error != nil
 }
 
-func (m Msg) IsInterrupted() bool {
+func (m message) isInterrupted() bool {
 	return m.interrupt
 }

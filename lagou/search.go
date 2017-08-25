@@ -9,14 +9,14 @@ import (
 	"time"
 
 	"github.com/WindomZ/grequests"
-	. "github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
+	"github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
 )
 
 const pageSize int = 15
 
-func (s Spider) searchWithPage(city, keyword string, pageNo int) (*SearchResponse, error) {
+func (s Spider) searchWithPage(city, keyword string, pageNo int) (*mobile.SearchResponse, error) {
 	if !s.running {
-		return nil, errors.New("spider stopped!")
+		return nil, errors.New("spider stopped")
 	}
 	resp, err := grequests.Get(
 		"https://m.lagou.com/search.json",
@@ -46,14 +46,14 @@ func (s Spider) searchWithPage(city, keyword string, pageNo int) (*SearchRespons
 		return nil, fmt.Errorf("status code: %v", resp.StatusCode)
 	}
 
-	response := new(SearchResponse)
+	response := new(mobile.SearchResponse)
 	if err := json.Unmarshal(resp.Bytes(), &response); err != nil {
 		return nil, err
 	}
 	return response, nil
 }
 
-func (s *Spider) search(city, keyword string) (<-chan *Msg, error) {
+func (s *Spider) search(city, keyword string) (<-chan *message, error) {
 	r, err := s.searchWithPage(city, keyword, 0)
 	if err != nil {
 		return nil, err
@@ -68,10 +68,10 @@ func (s *Spider) search(city, keyword string) (<-chan *Msg, error) {
 		pages++
 	}
 
-	s.Progress.Start(totalCount)
+	s.progress.start(totalCount)
 
-	msg := make(chan *Msg, pages)
-	msg <- MsgData(r)
+	msg := make(chan *message, pages)
+	msg <- newMsgData(r)
 
 	go func() {
 		wait := sync.WaitGroup{}
@@ -80,9 +80,9 @@ func (s *Spider) search(city, keyword string) (<-chan *Msg, error) {
 			wait.Add(1)
 			go func(i int) {
 				if r, err := s.searchWithPage(city, keyword, i); err != nil {
-					msg <- MsgError(err)
+					msg <- newMsgError(err)
 				} else {
-					msg <- MsgData(r)
+					msg <- newMsgData(r)
 				}
 				wait.Done()
 			}(i)
@@ -94,13 +94,13 @@ func (s *Spider) search(city, keyword string) (<-chan *Msg, error) {
 	return msg, nil
 }
 
-func (s *Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
+func (s *Spider) searchPositions(city, keyword string) (<-chan *message, error) {
 	msgSR, err := s.search(city, keyword)
 	if err != nil {
 		return nil, err
 	}
 
-	msg := make(chan *Msg, cap(msgSR)*pageSize)
+	msg := make(chan *message, cap(msgSR)*pageSize)
 	go func() {
 		wait := sync.WaitGroup{}
 		for keep := s.running; keep; {
@@ -108,31 +108,31 @@ func (s *Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 			case m := <-msgSR:
 				if m == nil {
 					keep = false
-				} else if m.HasData() {
+				} else if m.hasData() {
 					wait.Add(1)
-					go func(ps []Position) {
+					go func(ps []mobile.Position) {
 						for _, p := range ps {
-							if s.filterCompanyId(p.CompanyId) &&
-								s.filterPositionId(p.PositionId) &&
+							if s.filterCompanyID(p.CompanyID) &&
+								s.filterPositionID(p.PositionID) &&
 								s.filterSalary(p.Salary) {
 								if s.filterString(p.PositionName) {
-									msg <- MsgData(p)
-									s.Progress.Increment()
+									msg <- newMsgData(p)
+									s.progress.increment()
 								} else {
 									wait.Add(1)
 									time.Sleep(s.Request.RequestInterval)
 									go func() {
-										if s.filterJobDetail(p.PositionId) {
-											msg <- MsgData(p)
+										if s.filterJobDetail(p.PositionID) {
+											msg <- newMsgData(p)
 										}
-										s.Progress.Increment()
+										s.progress.increment()
 										wait.Done()
 									}()
 								}
 							}
 						}
 						wait.Done()
-					}(m.data.(*SearchResponse).Content.Data.Page.Result)
+					}(m.data.(*mobile.SearchResponse).Content.Data.Page.Result)
 				} else {
 					keep = false
 					msg <- m
@@ -145,26 +145,27 @@ func (s *Spider) searchPositions(city, keyword string) (<-chan *Msg, error) {
 			}
 		}
 		wait.Wait()
-		s.Progress.Finish()
+		s.progress.finish()
 		close(msg)
 	}()
 
 	return msg, nil
 }
 
-func (s Spider) SearchPositionMap(city, keyword string) (PositionMap, error) {
+// SearchPositionMap search all positions via city and keyword, returns a PositionMap.
+func (s Spider) SearchPositionMap(city, keyword string) (mobile.PositionMap, error) {
 	msg, err := s.searchPositions(city, keyword)
 	if err != nil {
 		return nil, err
 	}
 
-	ps := make([]Position, 0, cap(msg))
+	ps := make([]mobile.Position, 0, cap(msg))
 
 	for keep := s.running; keep; {
 		select {
 		case m := <-msg:
-			if m != nil && m.HasData() {
-				ps = append(ps, m.data.(Position))
+			if m != nil && m.hasData() {
+				ps = append(ps, m.data.(mobile.Position))
 			} else {
 				keep = false
 			}
@@ -173,13 +174,14 @@ func (s Spider) SearchPositionMap(city, keyword string) (PositionMap, error) {
 		}
 	}
 
-	positions := PositionMap{}
+	positions := mobile.PositionMap{}
 	positions.Add(ps...)
 	return positions, nil
 }
 
-func (s Spider) SearchPositionMaps(city string, keywords ...string) (PositionMap, error) {
-	positions := PositionMap{}
+// SearchPositionMaps search all positions via city and some keywords, returns a PositionMap.
+func (s Spider) SearchPositionMaps(city string, keywords ...string) (mobile.PositionMap, error) {
+	positions := mobile.PositionMap{}
 
 	for _, keyword := range keywords {
 		pm, err := s.SearchPositionMap(city, keyword)

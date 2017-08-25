@@ -2,6 +2,7 @@ package lagou
 
 import "github.com/WindomZ/grequests"
 
+// GetCookies fetch and set cookies from a http request.
 func (s *Spider) GetCookies() error {
 	resp, err := grequests.Get(
 		"https://m.lagou.com",

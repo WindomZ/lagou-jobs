@@ -7,7 +7,7 @@ import (
 )
 
 func TestJobs_crawlJobDetail(t *testing.T) {
-	spider, err := New("../tests/asset/config.json")
+	spider, err := New("../tests/config.json")
 	if err != nil {
 		t.Fatal(err)
 	} else if err := spider.ready(); err != nil {
@@ -35,7 +35,7 @@ func TestJobs_crawlJobDetail(t *testing.T) {
 }
 
 func TestJobs_filterJobDetail(t *testing.T) {
-	spider, err := New("../tests/asset/config.json")
+	spider, err := New("../tests/config.json")
 	if err != nil {
 		t.Fatal(err)
 	} else if err := spider.ready(); err != nil {

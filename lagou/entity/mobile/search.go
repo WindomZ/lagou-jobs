@@ -1,5 +1,6 @@
 package mobile
 
+// SearchResponse defines structure of searching request response
 type SearchResponse struct {
 	State   int    `json:"state"`
 	Message string `json:"message"`

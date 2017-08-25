@@ -7,15 +7,15 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/WindomZ/grequests"
-	. "github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
+	"github.com/WindomZ/lagou-jobs/lagou/entity/mobile"
 )
 
-func (s Spider) crawlJobDetail(positionId int) (*JobDetail, error) {
+func (s Spider) crawlJobDetail(positionID int) (*mobile.JobDetail, error) {
 	if !s.running {
-		return nil, errors.New("spider stopped!")
+		return nil, errors.New("spider stopped")
 	}
 	resp, err := grequests.Get(
-		fmt.Sprintf("https://m.lagou.com/jobs/%v.html", positionId),
+		fmt.Sprintf("https://m.lagou.com/jobs/%v.html", positionID),
 		&grequests.RequestOptions{
 			Headers: map[string]string{
 				"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
@@ -40,7 +40,7 @@ func (s Spider) crawlJobDetail(positionId int) (*JobDetail, error) {
 		return nil, err
 	}
 
-	job := new(JobDetail)
+	job := new(mobile.JobDetail)
 
 	job.Meta.Keywords = doc.Find("meta[name=keywords]").
 		AttrOr("content", "")
@@ -67,8 +67,8 @@ func (s Spider) crawlJobDetail(positionId int) (*JobDetail, error) {
 	return job, nil
 }
 
-func (s Spider) filterJobDetail(positionId int) bool {
-	j, err := s.crawlJobDetail(positionId)
+func (s Spider) filterJobDetail(positionID int) bool {
+	j, err := s.crawlJobDetail(positionID)
 	if err != nil {
 		fmt.Println(err.Error())
 		return false

@@ -2,6 +2,7 @@ package lagou
 
 import "time"
 
+// Request defines http request config
 type Request struct {
 	RequestTimeout  time.Duration
 	RequestInterval time.Duration

@@ -12,7 +12,7 @@ func TestPositions_Add_Map(t *testing.T) {
 
 	for i := 1; i <= 10; i++ {
 		p.Add(Position{
-			CompanyId:   i,
+			CompanyID:   i,
 			CompanyName: "aaa" + strconv.Itoa(i),
 		})
 	}
@@ -20,7 +20,7 @@ func TestPositions_Add_Map(t *testing.T) {
 	assert.Equal(t, 10, len(p))
 
 	p.Add(Position{
-		CompanyId:   5,
+		CompanyID:   5,
 		CompanyName: "aaa" + strconv.Itoa(5),
 	})
 	assert.Equal(t, 10, len(p))

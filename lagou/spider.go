@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// Spider defines lagou spider main body
 type Spider struct {
 	Config
 	Filter
@@ -16,9 +17,10 @@ type Spider struct {
 	running   bool
 	interrupt chan bool
 
-	Progress Progress
+	progress progress
 }
 
+// New returns a Spider instance
 func New(configPath string) (*Spider, error) {
 	s := &Spider{
 		interrupt: make(chan bool),
@@ -45,7 +47,7 @@ func (s *Spider) ready() error {
 	s.lock.Lock()
 	if s.running {
 		s.lock.Unlock()
-		return errors.New("spider is running...")
+		return errors.New("spider is running")
 	}
 	s.running = true
 	s.lock.Unlock()
@@ -67,6 +69,7 @@ func (s *Spider) run() error {
 	return nil
 }
 
+// Start start the searching jobs
 func (s *Spider) Start() error {
 	if err := s.ready(); err != nil {
 		return nil
@@ -74,6 +77,7 @@ func (s *Spider) Start() error {
 	return s.run()
 }
 
+// Stop stop the searching jobs
 func (s *Spider) Stop() {
 	s.lock.Lock()
 	if s.running {

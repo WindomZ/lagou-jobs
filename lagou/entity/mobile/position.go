@@ -1,26 +1,29 @@
 package mobile
 
+// Position defines structure of lagou position
 type Position struct {
 	City            string `json:"city"`
-	CompanyId       int    `json:"companyId"`
+	CompanyID       int    `json:"companyID"`
 	CompanyName     string `json:"companyName"`
 	CompanyFullName string `json:"companyFullName"`
-	PositionId      int    `json:"positionId"`
+	PositionID      int    `json:"positionID"`
 	PositionName    string `json:"positionName"`
 	Salary          string `json:"salary"`
 	CreateTime      string `json:"createTime"`
 }
 
+// PositionMap defines a map of positions with company name as the key
 type PositionMap map[string][]Position
 
+// Add add one or more Position jobs
 func (p PositionMap) Add(jobs ...Position) {
 	for _, job := range jobs {
-		if job.CompanyId != 0 && len(job.CompanyName) != 0 {
+		if job.CompanyID != 0 && len(job.CompanyName) != 0 {
 			if _, ok := p[job.CompanyName]; !ok {
 				p[job.CompanyName] = make([]Position, 0, 3)
 			}
 			for _, j := range p[job.CompanyName] {
-				if j.PositionId == job.PositionId {
+				if j.PositionID == job.PositionID {
 					return
 				}
 			}
@@ -29,6 +32,7 @@ func (p PositionMap) Add(jobs ...Position) {
 	}
 }
 
+// Concat concat one or more PositionMap others
 func (p PositionMap) Concat(others ...PositionMap) {
 	for _, other := range others {
 		for k, v := range other {
@@ -41,6 +45,7 @@ func (p PositionMap) Concat(others ...PositionMap) {
 	}
 }
 
+// Map convert to a map
 func (p PositionMap) Map() map[string][]Position {
 	return map[string][]Position(p)
 }

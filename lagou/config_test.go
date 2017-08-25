@@ -8,7 +8,7 @@ import (
 
 func TestConfig_ReadConfig(t *testing.T) {
 	c := new(Config)
-	if err := c.ReadConfig("../tests/asset/config.json"); err != nil {
+	if err := c.ReadConfig("../tests/config.json"); err != nil {
 		t.Fatal(err)
 	}
 

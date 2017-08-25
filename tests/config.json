@@ -8,12 +8,12 @@
       "go"
     ],
     "company": {
-      "excludeId": [
+      "excludeID": [
         0
       ]
     },
     "position": {
-      "excludeId": [
+      "excludeID": [
         0
       ],
       "filter": {
