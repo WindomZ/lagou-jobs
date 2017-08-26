@@ -7,8 +7,8 @@
 
 ## Feature
 - 高并发爬虫实现
-- 简化且实用规则：城市、关键字等搜索 + 薪资、关键字等筛选
-- 更为实用且友好的筛选机制
+- 实用且简化的规则：城市、关键字等搜索 + 薪资、关键字等筛选
+- 实用且友好的筛选机制
 - 简单易用的命令行工具
 - 更多特性在[Roadmap](#roadmap)
 
@@ -21,7 +21,7 @@ go get -u github.com/WindomZ/lagou-jobs
 
 ### Config
 可以基于下列注释信息配置项目中提供的空白`config.json`文件：
-```json
+```
 {
   "userAgent": "",       // User Agent
   "requestTimeout": 15,  // 请求超时时间
@@ -74,9 +74,9 @@ lagou-jobs config.json
 将会得到配置中"output"的输出信息。
 
 ## Contributing
-欢迎提出请求，在[issues page](https://github.com/WindomZ/lagou-jobs/issues)报告错误，提出建议和讨论。
+欢迎**PRs**(pull requests)，或在[issues page](https://github.com/WindomZ/lagou-jobs/issues)报告错误，提出建议和讨论。
 
-如果你喜欢或支持，欢迎点击上面 :star:Star
+如果你对此项目感兴趣，欢迎点击上面 :star:Star 予以支持。
 
 ## Roadmap
 
@@ -86,8 +86,8 @@ lagou-jobs config.json
 - [ ] 预防官方屏蔽机制
 - [x] 归类公司、职位信息
 - [x] 更友好的薪资筛选(一个或者范围内薪资)
-- [ ] 学历筛选(很多都是本科，暂时不做)
-- [ ] 输出JSON格式
+- [ ] 学历筛选(很多都是本科，且有筛选机制支持，待定)
+- [x] 输出JSON格式
 - [ ] 输出HTML格式，网页可视化
 
 ## License
